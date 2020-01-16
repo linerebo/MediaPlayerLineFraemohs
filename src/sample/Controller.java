@@ -98,7 +98,7 @@ public class Controller implements Initializable {
     public void handleNewPlaylistButton(){
     }
 
-    //creating catagories to search for media
+    //creating catagories for the Videos Listview
     public void displayCatagories(){
         listCatagories = FXCollections.observableArrayList();
         for (Video element: videos) {
