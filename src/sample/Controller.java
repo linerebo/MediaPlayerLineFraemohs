@@ -37,6 +37,7 @@ public class Controller implements Initializable {
     private PreparedStatement sqlstatement;
     private ResultSet dataResultset;
     private Playlist newPlaylist;
+    private int newID = 0;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -50,6 +51,7 @@ public class Controller implements Initializable {
         //insertData();
         getData();
         displayCatagories();
+        displayPlaylists();
         displayMediaList();
         handleVolume();
     }
@@ -98,7 +100,15 @@ public class Controller implements Initializable {
     }
 
     public void handleNewPlaylistButton(){
-
+        for (Playlist element : playlists) {
+            if(newID < element.playlistID ){
+                newID = element.playlistID;
+            }
+        }
+        newID = newID + 1;
+        newPlaylist = new Playlist(namePlaylistField.getText(), newID);
+        playlists.add(newPlaylist);
+        DB.insertSQL("insert into tblPlaylist values (" + newID + ",'" + namePlaylistField.getText() + "')");
     }
 
     //creating catagories for the Videos Listview
@@ -110,6 +120,10 @@ public class Controller implements Initializable {
             }
         }
         comboboxCatagory.setItems(listCatagories);
+    }
+
+    public void displayPlaylists(){
+        comboboxPlaylist.setItems(playlists);
     }
 
     //displaying media in listView
@@ -136,6 +150,27 @@ public class Controller implements Initializable {
                 videos.add(newVideo);   //add the new video object to the Observablelist of videos
             }
         } catch (SQLException e) {System.err.println(e.getMessage());};
+
+        try{
+            sqlstatement = dbcon.prepareStatement("select * from tblPlaylist");
+            dataResultset = sqlstatement.executeQuery();
+            playlists = FXCollections.observableArrayList();
+//        while (dataResultset.next()) {
+//            newVideo = new Video();
+//            newVideo.videoID = dataResultset.getInt(1);
+//            newVideo.filePath = dataResultset.getString(2);
+//            newVideo.videoTitle = dataResultset.getString(3);
+//            newVideo.catagory = dataResultset.getString(4);
+//            System.out.println(newVideo.videoID  + " Title: " + newVideo.videoTitle + " Catagory: " + newVideo.catagory + " File: " + newVideo.filePath);
+//            videos.add(newVideo);   //add the new video object to the Observablelist of video
+        } catch (SQLException e) {System.err.println(e.getMessage());};
+
+    }
+
+    public void handleAddVideo(){
+        comboboxPlaylist.getValue().addVideo(listViewVideo.getSelectionModel().getSelectedItem());
+        listViewPlaylist.setItems(comboboxPlaylist.getValue().pvideos);
+        DB.insertSQL("insert into tblContentOfPlaylist values (" + newID + ",'" + namePlaylistField.getText() + "')"); //TO DO!
     }
 
 }

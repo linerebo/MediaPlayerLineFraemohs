@@ -16,6 +16,10 @@ public class Playlist {
         pvideos = FXCollections.observableArrayList();
     }
 
+    public void addVideo(Video newVideo){
+        pvideos.add(newVideo);
+    }
+
     @Override
     public String toString(){
         return playlistName;
