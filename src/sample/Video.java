@@ -7,4 +7,9 @@ public class Video {
     String catagory;
 
     public Video(){}
+
+    @Override
+    public String toString(){
+        return videoTitle;
+    }
 }

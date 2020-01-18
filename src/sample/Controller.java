@@ -18,10 +18,11 @@ import java.util.ResourceBundle;
 //JavaFX application providing administration of mp4 media files and playlists. The application allows the user to play video and create/edit playlists
 public class Controller implements Initializable {
     @FXML private MediaView mv;
-    @FXML private Button newPlaylist;
     @FXML private Button editPlaylist;
-    @FXML private ListView<String> listView;
-    @FXML private ComboBox<String> combobox;
+    @FXML private ListView<Video> listViewPlaylist;
+    @FXML private ListView<Video> listViewVideo;
+    @FXML private ComboBox<String> comboboxCatagory;
+    @FXML private ComboBox<Playlist> comboboxPlaylist;
     @FXML private Slider volumeSlider;
     @FXML private TextField namePlaylistField;
     private MediaPlayer mp;
@@ -29,23 +30,24 @@ public class Controller implements Initializable {
     private ObservableList<String> listCatagories;
     private ObservableList<String> listMedia;
     private ObservableList<Video> videos;
-    private ArrayList<Playlist> playlists = new ArrayList<>();
+    private ObservableList<Playlist> playlists;
     private String data;
     private Video newVideo;
     private Connection dbcon;
     private PreparedStatement sqlstatement;
     private ResultSet dataResultset;
+    private Playlist newPlaylist;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {dbcon = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=Mediaplayer","sa","123456");}
             catch (SQLException e) {System.err.println(e.getMessage());};
         String path = new File("src/sample/Media/Maroon5.mp4").getAbsolutePath();
-        System.out.println(path);
         me = new Media(new File(path).toURI().toString());
         mp = new MediaPlayer(me);
         mv.setMediaPlayer(mp);
         mp.setAutoPlay(false);
+        //insertData();
         getData();
         displayCatagories();
         displayMediaList();
@@ -96,6 +98,7 @@ public class Controller implements Initializable {
     }
 
     public void handleNewPlaylistButton(){
+
     }
 
     //creating catagories for the Videos Listview
@@ -106,23 +109,23 @@ public class Controller implements Initializable {
                 listCatagories.add(element.catagory);
             }
         }
-        combobox.setItems(listCatagories);
+        comboboxCatagory.setItems(listCatagories);
     }
 
     //displaying media in listView
     public void displayMediaList(){
-        listMedia = FXCollections.observableArrayList();
-        for (Video element: videos) {
-            listMedia.add(element.videoTitle);
+        listViewVideo.setItems(videos);         //displaying videos in listViewVideo
+        if (comboboxPlaylist.getValue() != null) {
+            listViewPlaylist.setItems(comboboxPlaylist.getValue().pvideos);
         }
-        listView.setItems(listMedia);
+
     }
 
     public void getData(){
         try{
-            videos = FXCollections.observableArrayList();
             sqlstatement = dbcon.prepareStatement("select * from tblVideo");
             dataResultset = sqlstatement.executeQuery();
+            videos = FXCollections.observableArrayList();
             while (dataResultset.next()) {
                 newVideo = new Video();
                 newVideo.videoID = dataResultset.getInt(1);
@@ -130,7 +133,7 @@ public class Controller implements Initializable {
                 newVideo.videoTitle = dataResultset.getString(3);
                 newVideo.catagory = dataResultset.getString(4);
                 System.out.println(newVideo.videoID  + " Title: " + newVideo.videoTitle + " Catagory: " + newVideo.catagory + " File: " + newVideo.filePath);
-                videos.add(newVideo);
+                videos.add(newVideo);   //add the new video object to the Observablelist of videos
             }
         } catch (SQLException e) {System.err.println(e.getMessage());};
     }
