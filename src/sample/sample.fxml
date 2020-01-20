@@ -52,20 +52,20 @@
                   <Font name="Arial Black" size="11.0" />
                </font>
             </Button>
-            <ComboBox fx:id="comboboxCatagory" layoutX="641.0" layoutY="287.0" prefHeight="62.0" prefWidth="281.0" promptText="Select search catagory" style="-fx-background-color: lightblue;" />
+            <ComboBox fx:id="comboboxCatagory" layoutX="641.0" layoutY="287.0" onAction="#handleSelectedCatagory" prefHeight="62.0" prefWidth="281.0" promptText="Select search catagory" style="-fx-background-color: lightblue;" />
             <Slider fx:id="volumeSlider" layoutX="416.0" layoutY="540.0" prefHeight="17.0" prefWidth="140.0" style="-fx-background-color: blue;" />
             <ListView fx:id="listViewVideo" layoutX="642.0" layoutY="352.0" prefHeight="220.0" prefWidth="281.0" />
-            <ComboBox fx:id="comboboxPlaylist" layoutX="642.0" layoutY="58.0" onAction="#displayMediaList" prefHeight="53.0" prefWidth="281.0" promptText="Select sample.Playlist" style="-fx-background-color: lightblue;" />
+            <ComboBox fx:id="comboboxPlaylist" layoutX="642.0" layoutY="58.0" onAction="#displayMediaList" prefHeight="53.0" prefWidth="281.0" promptText="Select Playlist" style="-fx-background-color: lightblue;" />
             <TextField fx:id="namePlaylistField" layoutX="760.0" layoutY="4.0" prefHeight="53.0" prefWidth="162.0" promptText="insert new playlist name">
                <font>
                   <Font name="Arial Black" size="11.0" />
                </font></TextField>
-            <Button layoutX="760.0" layoutY="575.0" mnemonicParsing="false" onAction="#handleAddVideo" prefHeight="25.0" prefWidth="162.0" style="-fx-background-color: blue;" text="Add video">
+            <Button layoutX="754.0" layoutY="575.0" mnemonicParsing="false" onAction="#handleAddVideo" prefHeight="25.0" prefWidth="168.0" style="-fx-background-color: blue;" text="Add video">
                <font>
                   <Font name="Arial Black" size="12.0" />
                </font>
             </Button>
-            <Button layoutX="760.0" layoutY="602.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="162.0" style="-fx-background-color: blue;" text="Remove video">
+            <Button layoutX="754.0" layoutY="602.0" mnemonicParsing="false" onAction="#handleRemoveVideo" prefHeight="25.0" prefWidth="168.0" style="-fx-background-color: blue;" text="Remove video">
                <font>
                   <Font name="Arial Black" size="12.0" />
                </font>
@@ -75,7 +75,7 @@
                   <Image url="@image/volume.PNG" />
                </image>
             </ImageView>
-            <Label alignment="CENTER" contentDisplay="CENTER" layoutX="642.0" layoutY="574.0" prefHeight="53.0" prefWidth="110.0" style="-fx-background-color: blue;" text="Edit sample.Playlist">
+            <Label alignment="CENTER" contentDisplay="CENTER" layoutX="642.0" layoutY="574.0" prefHeight="53.0" prefWidth="110.0" style="-fx-background-color: blue;" text="Edit Playlist">
                <font>
                   <Font name="Arial Black" size="12.0" />
                </font>

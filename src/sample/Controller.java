@@ -29,7 +29,8 @@ public class Controller implements Initializable {
     private Media me;
     private ObservableList<String> listCatagories;
     private ObservableList<String> listMedia;
-    private ObservableList<Video> videos;
+    private ObservableList<Video> videos;   //contains all videos
+    private ObservableList<Video> catagoryVideos;
     private ObservableList<Playlist> playlists;
     private String data;
     private Video newVideo;
@@ -43,39 +44,35 @@ public class Controller implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         try {dbcon = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=Mediaplayer","sa","123456");}
             catch (SQLException e) {System.err.println(e.getMessage());};
-        String path = new File("src/sample/Media/Maroon5.mp4").getAbsolutePath();
-        me = new Media(new File(path).toURI().toString());
-        mp = new MediaPlayer(me);
-        mv.setMediaPlayer(mp);
-        mp.setAutoPlay(false);
-        //insertData();
+
+        //insertData();         //the method insertData is only executed once to insert data for videos in tblVideo
         getData();
         displayCatagories();
         displayPlaylists();
         displayMediaList();
-        handleVolume();
     }
 
     public void handlePlay(){
-        mp.play();
+        comboboxPlaylist.getValue().playNext(mv);
+        handleVolume();
     }
 
     public void handlePause(){
-        mp.pause();
+        comboboxPlaylist.getValue().currentMediaPlayer.pause();
     }
 
     public void handleStop(){
-        mp.stop();
+        comboboxPlaylist.getValue().currentMediaPlayer.stop();
     }
 
     public void handleVolume(){
-        volumeSlider.setValue(mp.getVolume()*100);
-        volumeSlider.valueProperty().addListener(new InvalidationListener() {
-            @Override
-            public void invalidated(Observable observable) {
-                mp.setVolume(volumeSlider.getValue()/100);
-            }
-        });
+            volumeSlider.setValue(comboboxPlaylist.getValue().currentMediaPlayer.getVolume()*100);
+            volumeSlider.valueProperty().addListener(new InvalidationListener() {
+                @Override
+                public void invalidated(Observable observable) {
+                    comboboxPlaylist.getValue().currentMediaPlayer.setVolume(volumeSlider.getValue()/100);
+                }
+            });
     }
 
 
@@ -108,6 +105,7 @@ public class Controller implements Initializable {
         newID = newID + 1;
         newPlaylist = new Playlist(namePlaylistField.getText(), newID);
         playlists.add(newPlaylist);
+        System.out.println(newID);
         DB.insertSQL("insert into tblPlaylist values (" + newID + ",'" + namePlaylistField.getText() + "')");
     }
 
@@ -122,6 +120,16 @@ public class Controller implements Initializable {
         comboboxCatagory.setItems(listCatagories);
     }
 
+    public void handleSelectedCatagory(){
+        catagoryVideos = FXCollections.observableArrayList();
+        for(Video element: videos){
+            if(element.catagory.equals(comboboxCatagory.getValue()) ){
+                catagoryVideos.add(element);
+            }
+        }
+        listViewVideo.setItems(catagoryVideos);
+    }
+
     public void displayPlaylists(){
         comboboxPlaylist.setItems(playlists);
     }
@@ -130,7 +138,7 @@ public class Controller implements Initializable {
     public void displayMediaList(){
         listViewVideo.setItems(videos);         //displaying videos in listViewVideo
         if (comboboxPlaylist.getValue() != null) {
-            listViewPlaylist.setItems(comboboxPlaylist.getValue().pvideos);
+            listViewPlaylist.setItems(comboboxPlaylist.getValue().pvideos);     //displaying videos of choosen playlist in listViewPlaylist
         }
 
     }
@@ -155,22 +163,39 @@ public class Controller implements Initializable {
             sqlstatement = dbcon.prepareStatement("select * from tblPlaylist");
             dataResultset = sqlstatement.executeQuery();
             playlists = FXCollections.observableArrayList();
-//        while (dataResultset.next()) {
-//            newVideo = new Video();
-//            newVideo.videoID = dataResultset.getInt(1);
-//            newVideo.filePath = dataResultset.getString(2);
-//            newVideo.videoTitle = dataResultset.getString(3);
-//            newVideo.catagory = dataResultset.getString(4);
-//            System.out.println(newVideo.videoID  + " Title: " + newVideo.videoTitle + " Catagory: " + newVideo.catagory + " File: " + newVideo.filePath);
-//            videos.add(newVideo);   //add the new video object to the Observablelist of video
+            while (dataResultset.next()) {
+                newPlaylist = new Playlist(dataResultset.getString(2), dataResultset.getInt(1));
+                playlists.add(newPlaylist);
+            }
         } catch (SQLException e) {System.err.println(e.getMessage());};
 
+        try{
+            sqlstatement = dbcon.prepareStatement("select * from tblContentOfPlaylist");
+            dataResultset = sqlstatement.executeQuery();
+
+            while (dataResultset.next()) {
+                for(Playlist element: playlists){
+                    if(element.playlistID == dataResultset.getInt(2)){
+                        for(Video videoElement: videos){
+                            if(videoElement.videoID == dataResultset.getInt(1)){
+                                element.pvideos.add(videoElement);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (SQLException e) {System.err.println(e.getMessage());};
     }
 
     public void handleAddVideo(){
         comboboxPlaylist.getValue().addVideo(listViewVideo.getSelectionModel().getSelectedItem());
         listViewPlaylist.setItems(comboboxPlaylist.getValue().pvideos);
-        DB.insertSQL("insert into tblContentOfPlaylist values (" + newID + ",'" + namePlaylistField.getText() + "')"); //TO DO!
+        DB.insertSQL("insert into tblContentOfPlaylist values (" + listViewVideo.getSelectionModel().getSelectedItem().videoID + ",'" + comboboxPlaylist.getValue().playlistID + "')");
+    }
+
+    public void handleRemoveVideo(){
+        comboboxPlaylist.getValue().removeVideo(listViewPlaylist.getSelectionModel().getSelectedItem());
+        DB.deleteSQL("delete from tblContentOfPlaylist where videoID="+listViewPlaylist.getSelectionModel().getSelectedItem().videoID+" and playlistID=" +comboboxPlaylist.getValue().playlistID);
     }
 
 }
