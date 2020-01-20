@@ -12,10 +12,16 @@ import javafx.scene.media.*;
 import java.io.*;
 import java.net.*;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 
-//JavaFX application providing administration of mp4 media files and playlists. The application allows the user to play video and create/edit playlists
+/**
+ * JavaFX application providing administration of mp4 media files and playlists.
+ * The application allows the user to play video and create/edit playlists
+ *
+ * @author Line Rebo Fraemohs
+ * @since 2020-01-20
+ */
+
 public class Controller implements Initializable {
     @FXML private MediaView mv;
     @FXML private Button editPlaylist;
@@ -44,7 +50,12 @@ public class Controller implements Initializable {
     private MediaPlayer currentMediaPlayer;
     private boolean isPaused = false;
 
-
+    /**
+     * The initialize method is run, when starting the program.
+     * It will estabilize connection with the database and start additional methods necessary for starting the application.
+     * @param location
+     * @param resources
+     */
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         try {dbcon = DriverManager.getConnection("jdbc:sqlserver://localhost:1433;databaseName=Mediaplayer","sa","123456");}
@@ -57,6 +68,9 @@ public class Controller implements Initializable {
         displayMediaList();
     }
 
+    /**
+     * This method handle change of playlists
+     */
     public void handlePlaylistChange (){
         prevPlaylist = playingPlaylist;
         playingPlaylist = comboboxPlaylist.getValue();
@@ -64,6 +78,9 @@ public class Controller implements Initializable {
         isPaused= false;
     }
 
+    /**
+     * This method handle the play button
+     */
     public void handlePlay(){
         if (currentMediaPlayer != null) {currentMediaPlayer.stop();};
         if (playingPlaylist != null) {
@@ -77,6 +94,9 @@ public class Controller implements Initializable {
         }
     }
 
+    /**
+     * This method handle playling a playlist. When one video is over, the next video starts.
+     */
     public void playNext() {
         Media nextMedia = new Media(new File(playingPlaylist.nextVideo().filePath).toURI().toString());
         MediaPlayer nextMediaPlayer = new MediaPlayer(nextMedia);
@@ -91,7 +111,9 @@ public class Controller implements Initializable {
         currentMediaPlayer = nextMediaPlayer;
     }
 
-
+    /**
+     * This method handle the pause button
+     */
     public void handlePause(){
         if (currentMediaPlayer != null) {
             currentMediaPlayer.pause();
@@ -99,10 +121,16 @@ public class Controller implements Initializable {
         }
     }
 
+    /**
+     * This method handle the stop button
+     */
     public void handleStop(){
         if (currentMediaPlayer != null) {currentMediaPlayer.stop();}
     }
 
+    /**
+     * This method handle the volume slide
+     */
     public void handleVolume(){
             volumeSlider.setValue(currentMediaPlayer.getVolume()*100);
             volumeSlider.valueProperty().addListener(new InvalidationListener() {
@@ -113,8 +141,9 @@ public class Controller implements Initializable {
             });
     }
 
-
-    //inserting data for media in tblVideo in Database
+    /**
+     * This method handle inserting of data for media in table tblVideo in the database. The method is only run once.
+     */
     public void insertData(){
         DB.insertSQL("insert into tblVideo values ('1','src/sample/Media/Alice_Merton.mp4','Alice Merton: No Roots', 'music')");
         DB.insertSQL("insert into tblVideo values ('2','src/sample/Media/Biology_Cell_Structure.mp4','Biology Cell Structure', 'molecular biology')");
@@ -134,6 +163,11 @@ public class Controller implements Initializable {
         DB.insertSQL("insert into tblVideo values ('16','src/sample/Media/Wild_animals.mp4','Wild Animals', 'animals')");
     }
 
+    /**
+     * This method is handling the new playlist button.
+     * The name of the list is stored.
+     * The playlist becomes a unique playlistID.
+     */
     public void handleNewPlaylistButton(){
         for (Playlist element : playlists) {
             if(newID < element.playlistID ){
@@ -143,11 +177,12 @@ public class Controller implements Initializable {
         newID = newID + 1;
         newPlaylist = new Playlist(namePlaylistField.getText(), newID);
         playlists.add(newPlaylist);
-        System.out.println(newID);
         DB.insertSQL("insert into tblPlaylist values (" + newID + ",'" + namePlaylistField.getText() + "')");
     }
 
-    //creating catagories for the Videos Listview
+    /**
+     * This method is creating catagories for the videos and shows the catagories in a combobox drop-down menu.
+     */
     public void displayCatagories(){
         listCatagories = FXCollections.observableArrayList();
         for (Video element: videos) {
@@ -158,6 +193,9 @@ public class Controller implements Initializable {
         comboboxCatagory.setItems(listCatagories);
     }
 
+    /**
+     * This method is handling selected catagory and showing videos in this catagory in the according listView
+     */
     public void handleSelectedCatagory(){
         catagoryVideos = FXCollections.observableArrayList();
         for(Video element: videos){
@@ -168,11 +206,16 @@ public class Controller implements Initializable {
         listViewVideo.setItems(catagoryVideos);
     }
 
+    /**
+     * This method is displaying playlists in a combobox drop-down menu.
+     */
     public void displayPlaylists(){
         comboboxPlaylist.setItems(playlists);
     }
 
-    //displaying media in listView
+    /**
+     * This method is displaying data in ListViews.
+     */
     public void displayMediaList(){
         listViewVideo.setItems(videos);         //displaying videos in listViewVideo
         if (comboboxPlaylist.getValue() != null) {
@@ -181,6 +224,9 @@ public class Controller implements Initializable {
 
     }
 
+    /**
+     * This method is retrieving data from the database.
+     */
     public void getData(){
         try{
             sqlstatement = dbcon.prepareStatement("select * from tblVideo");
@@ -225,12 +271,18 @@ public class Controller implements Initializable {
         } catch (SQLException e) {System.err.println(e.getMessage());};
     }
 
+    /**
+     * This method is handling add video to playlist.
+     */
     public void handleAddVideo(){
         comboboxPlaylist.getValue().addVideo(listViewVideo.getSelectionModel().getSelectedItem());
         listViewPlaylist.setItems(comboboxPlaylist.getValue().pvideos);
         DB.insertSQL("insert into tblContentOfPlaylist values (" + listViewVideo.getSelectionModel().getSelectedItem().videoID + ",'" + comboboxPlaylist.getValue().playlistID + "')");
     }
 
+    /**
+     * This method is handling remove video from playlist.
+     */
     public void handleRemoveVideo(){
         comboboxPlaylist.getValue().removeVideo(listViewPlaylist.getSelectionModel().getSelectedItem());
         DB.deleteSQL("delete from tblContentOfPlaylist where videoID="+listViewPlaylist.getSelectionModel().getSelectedItem().videoID+" and playlistID=" +comboboxPlaylist.getValue().playlistID);
