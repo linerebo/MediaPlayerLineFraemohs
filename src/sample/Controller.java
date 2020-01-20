@@ -41,6 +41,9 @@ public class Controller implements Initializable {
     private int newID = 0;
     private Playlist playingPlaylist;
     private Playlist prevPlaylist;
+    private MediaPlayer currentMediaPlayer;
+    private boolean isPaused = false;
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -58,30 +61,54 @@ public class Controller implements Initializable {
         prevPlaylist = playingPlaylist;
         playingPlaylist = comboboxPlaylist.getValue();
         displayMediaList();
+        isPaused= false;
     }
 
     public void handlePlay(){
-        if (prevPlaylist != null && prevPlaylist.currentMediaPlayer != null) {prevPlaylist.currentMediaPlayer.stop();};
+        if (currentMediaPlayer != null) {currentMediaPlayer.stop();};
         if (playingPlaylist != null) {
-            playingPlaylist.playNext(mv);
+            if (isPaused) {
+                currentMediaPlayer.play();
+                isPaused=false;
+            } else {
+                playNext();
+            };
             handleVolume();
         }
     }
 
+    public void playNext() {
+        Media nextMedia = new Media(new File(playingPlaylist.nextVideo().filePath).toURI().toString());
+        MediaPlayer nextMediaPlayer = new MediaPlayer(nextMedia);
+        nextMediaPlayer.setAutoPlay(true);
+        nextMediaPlayer.setOnEndOfMedia(new Runnable() {
+            @Override public void run() {
+                playNext();
+            }
+        });
+        if (currentMediaPlayer!=null) {currentMediaPlayer.stop();};
+        mv.setMediaPlayer(nextMediaPlayer);
+        currentMediaPlayer = nextMediaPlayer;
+    }
+
+
     public void handlePause(){
-        if (playingPlaylist != null && playingPlaylist.currentMediaPlayer != null) {playingPlaylist.currentMediaPlayer.pause();}
+        if (currentMediaPlayer != null) {
+            currentMediaPlayer.pause();
+            isPaused = true;
+        }
     }
 
     public void handleStop(){
-        if (playingPlaylist != null && playingPlaylist.currentMediaPlayer != null) {playingPlaylist.currentMediaPlayer.stop();}
+        if (currentMediaPlayer != null) {currentMediaPlayer.stop();}
     }
 
     public void handleVolume(){
-            volumeSlider.setValue(playingPlaylist.currentMediaPlayer.getVolume()*100);
+            volumeSlider.setValue(currentMediaPlayer.getVolume()*100);
             volumeSlider.valueProperty().addListener(new InvalidationListener() {
                 @Override
                 public void invalidated(Observable observable) {
-                    playingPlaylist.currentMediaPlayer.setVolume(volumeSlider.getValue()/100);
+                    currentMediaPlayer.setVolume(volumeSlider.getValue()/100);
                 }
             });
     }

@@ -14,7 +14,6 @@ public class Playlist {
     int playlistID;
     public ObservableList<Video> pvideos;
     public int videoNumber = 0;
-    public MediaPlayer currentMediaPlayer;
 
     public Playlist(String name, int id){
         playlistName = name;
@@ -30,19 +29,6 @@ public class Playlist {
         pvideos.remove(removedVideo);
     }
 
-    public void playNext(MediaView mv) {
-        Media nextMedia = new Media(new File(nextVideo().filePath).toURI().toString());
-        MediaPlayer nextMediaPlayer = new MediaPlayer(nextMedia);
-        nextMediaPlayer.setAutoPlay(true);
-        nextMediaPlayer.setOnEndOfMedia(new Runnable() {
-            @Override public void run() {
-                playNext(mv);
-            }
-        });
-        if (currentMediaPlayer!=null) {currentMediaPlayer.stop();};
-        mv.setMediaPlayer(nextMediaPlayer);
-        currentMediaPlayer = nextMediaPlayer;
-    }
 
     public Video nextVideo(){
         if (videoNumber == pvideos.size()) {
