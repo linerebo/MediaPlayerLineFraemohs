@@ -39,6 +39,8 @@ public class Controller implements Initializable {
     private ResultSet dataResultset;
     private Playlist newPlaylist;
     private int newID = 0;
+    private Playlist playingPlaylist;
+    private Playlist prevPlaylist;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -52,25 +54,34 @@ public class Controller implements Initializable {
         displayMediaList();
     }
 
+    public void handlePlaylistChange (){
+        prevPlaylist = playingPlaylist;
+        playingPlaylist = comboboxPlaylist.getValue();
+        displayMediaList();
+    }
+
     public void handlePlay(){
-        comboboxPlaylist.getValue().playNext(mv);
-        handleVolume();
+        if (prevPlaylist != null && prevPlaylist.currentMediaPlayer != null) {prevPlaylist.currentMediaPlayer.stop();};
+        if (playingPlaylist != null) {
+            playingPlaylist.playNext(mv);
+            handleVolume();
+        }
     }
 
     public void handlePause(){
-        comboboxPlaylist.getValue().currentMediaPlayer.pause();
+        if (playingPlaylist != null && playingPlaylist.currentMediaPlayer != null) {playingPlaylist.currentMediaPlayer.pause();}
     }
 
     public void handleStop(){
-        comboboxPlaylist.getValue().currentMediaPlayer.stop();
+        if (playingPlaylist != null && playingPlaylist.currentMediaPlayer != null) {playingPlaylist.currentMediaPlayer.stop();}
     }
 
     public void handleVolume(){
-            volumeSlider.setValue(comboboxPlaylist.getValue().currentMediaPlayer.getVolume()*100);
+            volumeSlider.setValue(playingPlaylist.currentMediaPlayer.getVolume()*100);
             volumeSlider.valueProperty().addListener(new InvalidationListener() {
                 @Override
                 public void invalidated(Observable observable) {
-                    comboboxPlaylist.getValue().currentMediaPlayer.setVolume(volumeSlider.getValue()/100);
+                    playingPlaylist.currentMediaPlayer.setVolume(volumeSlider.getValue()/100);
                 }
             });
     }
